@@ -8,9 +8,9 @@
   import { Keymap, Notice, Platform, type PaneType, TFile } from "obsidian";
 
   import { activeFile } from "../stores";
-  import { drafts, pluginSettings, selectedDraft } from "src/model/stores";
+  import { drafts, pluginSettings, selectedDraft, sceneMetadata } from "src/model/stores";
   import SortableList from "../sortable/SortableList.svelte";
-  import type { IndentedScene, MultipleSceneDraft } from "src/model/types";
+  import type { IndentedScene, MultipleSceneDraft, SceneStatus } from "src/model/types";
   import Disclosure from "../components/Disclosure.svelte";
   import { formatSceneNumber, numberScenes } from "src/model/draft-utils";
   import type { UndoManager } from "src/view/undo/undo-manager";
@@ -18,6 +18,8 @@
   import { scenePath } from "src/model/scene-navigation";
   import { selectElementContents, useApp } from "../utils";
   import { addAll, addScene, ignoreAll, ignoreScene } from "./scene-menu-items";
+  import { getSceneMetadataKey } from "src/model/scene-metadata";
+  import { SceneMetadataModal } from "../scene-metadata/SceneMetadataModal";
 
   const app = useApp();
 
@@ -41,14 +43,16 @@
     collapsible: boolean;
     hidden: boolean;
     numbering: number[];
-    status: string | undefined;
+    status: SceneStatus | undefined;
+    colorTag: string | undefined;
+    synopsis: string | undefined;
   };
   let items: SceneItem[];
   let collapsedItems: string[] = [];
   $: {
     items =
       $selectedDraft && $selectedDraft.format === "scenes"
-        ? itemsFromScenes($selectedDraft.scenes, collapsedItems)
+        ? itemsFromScenes($selectedDraft.scenes, collapsedItems, $sceneMetadata)
         : [];
   }
 
@@ -59,7 +63,8 @@
 
   function itemsFromScenes(
     indentedScenes: IndentedScene[],
-    _collapsedItems: string[]
+    _collapsedItems: string[],
+    _sceneMetadata: Record<string, any>
   ): SceneItem[] {
     const scenes = numberScenes(indentedScenes);
     const itemsToReturn: SceneItem[] = [];
@@ -79,17 +84,28 @@
       const nextScene = index < scenes.length - 1 ? scenes[index + 1] : false;
       const path = makeScenePath($selectedDraft as MultipleSceneDraft, title);
       const file = app.vault.getAbstractFileByPath(path);
-      let status = undefined;
-      if (file && file instanceof TFile) {
-        const metadata = app.metadataCache.getFileCache(file);
-        if (
-          metadata &&
-          metadata.frontmatter &&
-          metadata.frontmatter["status"]
-        ) {
-          status = `${metadata.frontmatter["status"]}`;
+
+      // Get metadata from store first, then fall back to frontmatter
+      const metadataKey = getSceneMetadataKey($selectedDraft.vaultPath, title);
+      const storedMetadata = _sceneMetadata[metadataKey];
+
+      let status: SceneStatus | undefined = storedMetadata?.status;
+      let colorTag: string | undefined = storedMetadata?.colorTag;
+      let synopsis: string | undefined = storedMetadata?.synopsis;
+
+      // Fall back to frontmatter if not in store
+      if (file && file instanceof TFile && !storedMetadata) {
+        const cache = app.metadataCache.getFileCache(file);
+        if (cache?.frontmatter?.longform) {
+          status = cache.frontmatter.longform.status;
+          colorTag = cache.frontmatter.longform.colorTag;
+          synopsis = cache.frontmatter.longform.synopsis;
+        } else if (cache?.frontmatter?.status) {
+          // Legacy support for old status field
+          status = cache.frontmatter.status as SceneStatus;
         }
       }
+
       const item = {
         id: title,
         name: title,
@@ -99,11 +115,32 @@
         hidden,
         numbering,
         status,
+        colorTag,
+        synopsis,
       };
       itemsToReturn.push(item);
     });
 
     return itemsToReturn;
+  }
+
+  // Open metadata modal for a scene
+  function openMetadataModal(sceneName: string) {
+    if (!$selectedDraft || $selectedDraft.format !== "scenes") return;
+
+    const metadataKey = getSceneMetadataKey($selectedDraft.vaultPath, sceneName);
+    const currentMetadata = $sceneMetadata[metadataKey] || {};
+
+    new SceneMetadataModal(
+      app,
+      $selectedDraft.vaultPath,
+      sceneName,
+      currentMetadata,
+      () => {
+        // Force refresh of items
+        items = itemsFromScenes($selectedDraft.scenes, collapsedItems, $sceneMetadata);
+      }
+    ).open();
   }
 
   // Track sort state for styling, set sorting options
@@ -360,11 +397,16 @@
         style="padding-left: calc(({item.indent} * var(--longform-explorer-indent-size)) + 6px {item.collapsible ? '' : '+ var(--size-4-4)'});"
         class:selected={$activeFile && $activeFile.path === item.path}
         on:contextmenu|preventDefault={onContext}
+        on:dblclick={() => openMetadataModal(item.name)}
         data-scene-path={item.path}
         data-scene-indent={item.indent}
         data-scene-name={item.name}
         data-scene-status={item.status}
+        title={item.synopsis || ''}
       >
+        {#if item.colorTag}
+          <span class="longform-scene-color-tag longform-color-{item.colorTag}"></span>
+        {/if}
         {#if item.collapsible}
           <Disclosure
             collapsed={collapsedItems.contains(item.id)}
@@ -375,7 +417,7 @@
           />
         {/if}
         <div
-          style="width: 100%;"
+          style="width: 100%; display: flex; align-items: center; gap: var(--size-4-1);"
           data-scene-path={item.path}
           on:click={(e) =>
             typeof item.path === "string" ? onItemClick(item, e) : {}}
@@ -387,13 +429,26 @@
             id={`longform-scene-${item.name}`}
             data-item-path={item.path}
             data-item-name={item.name}
-            style="display: inline;"
+            style="display: inline; flex: 1;"
             on:keydown={item.path === editingPath ? onKeydown : null}
             on:blur={item.path === editingPath ? onBlur : null}
             contenteditable={item.path === editingPath}
           >
             {item.name}
           </div>
+          {#if item.status}
+            <span class="longform-scene-status longform-status-{item.status}">
+              {#if item.status === 'todo'}
+                <span class="longform-status-icon">○</span>
+              {:else if item.status === 'in-progress'}
+                <span class="longform-status-icon">◐</span>
+              {:else if item.status === 'done'}
+                <span class="longform-status-icon">●</span>
+              {:else if item.status === 'revision'}
+                <span class="longform-status-icon">↺</span>
+              {/if}
+            </span>
+          {/if}
         </div>
       </div>
     </SortableList>
@@ -555,5 +610,37 @@
     background-color: var(--interactive-accent-hover);
     color: var(--text-on-accent);
     margin-left: var(--ghost-indent);
+  }
+
+  /* Scene metadata indicators */
+  .longform-scene-color-tag {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .longform-color-red { background-color: var(--color-red); }
+  .longform-color-orange { background-color: var(--color-orange); }
+  .longform-color-yellow { background-color: var(--color-yellow); }
+  .longform-color-green { background-color: var(--color-green); }
+  .longform-color-blue { background-color: var(--color-blue); }
+  .longform-color-purple { background-color: var(--color-purple); }
+  .longform-color-pink { background-color: var(--color-pink); }
+  .longform-color-gray { background-color: var(--text-muted); }
+
+  .longform-scene-status {
+    font-size: 10px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .longform-status-todo { color: var(--text-muted); }
+  .longform-status-in-progress { color: var(--color-yellow); }
+  .longform-status-done { color: var(--color-green); }
+  .longform-status-revision { color: var(--color-orange); }
+
+  .longform-status-icon {
+    font-size: 12px;
   }
 </style>

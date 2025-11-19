@@ -223,3 +223,25 @@ body.longform-distraction-free .view-header:hover {
   color: var(--text-muted);
   margin-left: var(--size-4-2);
 }
+
+/* ========================================
+   Scene Metadata Modal Styles
+   ======================================== */
+
+.longform-scene-metadata-modal {
+  max-width: 500px;
+}
+
+.longform-scene-metadata-modal h2 {
+  margin: 0 0 var(--size-4-4) 0;
+  font-size: var(--font-ui-large);
+}
+
+.longform-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--size-4-2);
+  margin-top: var(--size-4-4);
+  padding-top: var(--size-4-4);
+  border-top: 1px solid var(--background-modifier-border);
+}

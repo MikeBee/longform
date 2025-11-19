@@ -6,6 +6,7 @@ import type {
   Draft,
   LongformPluginSettings,
   DraftWordCounts,
+  SceneMetadata,
 } from "./types";
 import type {
   Workflow,
@@ -60,6 +61,11 @@ export const draftWordCounts = writable<DraftWordCounts>({});
  * Writeable store of whether the plugin is waiting for sync.
  */
 export const waitingForSync = writable<boolean>(false);
+
+/**
+ * Writeable store of scene metadata, keyed by "draftPath/sceneTitle".
+ */
+export const sceneMetadata = writable<Record<string, SceneMetadata>>({});
 
 // DERIVED STORES
 

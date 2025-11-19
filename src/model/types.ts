@@ -1,6 +1,15 @@
 export const LONGFORM_CURRENT_PLUGIN_DATA_VERSION = 3;
 export const LONGFORM_CURRENT_INDEX_VERSION = 1;
 
+export type SceneStatus = "todo" | "in-progress" | "done" | "revision";
+
+export type SceneMetadata = {
+  synopsis?: string;
+  status?: SceneStatus;
+  colorTag?: string;
+  notes?: string; // Private notes that don't compile
+};
+
 export type IndentedScene = {
   title: string;
   indent: number;
