@@ -272,6 +272,97 @@
   background-clip: text;
 }
 
+/* ========================================
+   Skeleton Loading States
+   ======================================== */
+
+.longform-skeleton {
+  background: linear-gradient(90deg,
+    var(--background-secondary) 25%,
+    var(--background-modifier-hover) 50%,
+    var(--background-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: longform-skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: var(--longform-radius-sm);
+}
+
+@keyframes longform-skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.longform-skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.longform-skeleton-text:last-child {
+  width: 60%;
+  margin-bottom: 0;
+}
+
+.longform-skeleton-stat {
+  height: 60px;
+}
+
+.longform-skeleton-bar {
+  height: 8px;
+  margin: var(--size-4-2) 0;
+}
+
+.longform-skeleton-card {
+  padding: var(--size-4-3);
+  margin-bottom: var(--size-4-2);
+}
+
+.longform-skeleton-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* ========================================
+   Keyboard Shortcut Indicators
+   ======================================== */
+
+.longform-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  padding: 2px 5px;
+  font-family: var(--font-monospace);
+  font-size: 10px;
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--background-modifier-border);
+}
+
+.longform-shortcut-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: var(--size-4-2);
+  opacity: 0.7;
+}
+
+.longform-shortcut-hint .longform-kbd {
+  font-size: 9px;
+}
+
+/* Command palette style shortcuts */
+.longform-command-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
 .longform-settings-user-steps {
   padding-inline-start: 1em;
   margin-block-start: 0;

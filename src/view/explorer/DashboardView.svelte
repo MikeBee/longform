@@ -600,7 +600,18 @@
   {:else if isAnalyzing}
     <div class="longform-dashboard-section">
       <h3>Text Analytics</h3>
-      <div class="longform-analyzing">Analyzing text...</div>
+      <!-- Skeleton loading state -->
+      <div class="longform-skeleton-container">
+        <div class="longform-skeleton longform-skeleton-circle" style="margin: 0 auto var(--size-4-2);"></div>
+        <div class="longform-skeleton longform-skeleton-text" style="width: 40%; margin: 0 auto var(--size-4-1);"></div>
+        <div class="longform-skeleton longform-skeleton-text" style="width: 30%; margin: 0 auto var(--size-4-3);"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--size-4-2);">
+          <div class="longform-skeleton longform-skeleton-stat"></div>
+          <div class="longform-skeleton longform-skeleton-stat"></div>
+          <div class="longform-skeleton longform-skeleton-stat"></div>
+          <div class="longform-skeleton longform-skeleton-stat"></div>
+        </div>
+      </div>
     </div>
   {/if}
 </div>
