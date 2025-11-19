@@ -18,10 +18,17 @@
   import { scenePath } from "src/model/scene-navigation";
   import { selectElementContents, useApp } from "../utils";
   import { addAll, addScene, ignoreAll, ignoreScene } from "./scene-menu-items";
-  import { getSceneMetadataKey } from "src/model/scene-metadata";
+  import { getSceneMetadataKey, updateSceneMetadata } from "src/model/scene-metadata";
   import { SceneMetadataModal } from "../scene-metadata/SceneMetadataModal";
 
   const app = useApp();
+
+  // Keyboard navigation state
+  let focusedIndex = -1;
+  let sceneListEl: HTMLElement;
+
+  // Status cycle order
+  const STATUS_CYCLE: (SceneStatus | undefined)[] = [undefined, "todo", "in-progress", "done", "revision"];
 
   let currentDraftIndex: number = -1;
   $: if ($selectedDraft) {
@@ -141,6 +148,94 @@
         items = itemsFromScenes($selectedDraft.scenes, collapsedItems, $sceneMetadata);
       }
     ).open();
+  }
+
+  // Quick status cycling - click status to cycle through states
+  async function cycleStatus(item: SceneItem, event: MouseEvent) {
+    event.stopPropagation();
+    if (!$selectedDraft || $selectedDraft.format !== "scenes") return;
+
+    const currentIndex = STATUS_CYCLE.indexOf(item.status);
+    const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
+    const nextStatus = STATUS_CYCLE[nextIndex];
+
+    const metadataKey = getSceneMetadataKey($selectedDraft.vaultPath, item.name);
+    const currentMetadata = $sceneMetadata[metadataKey] || {};
+
+    await updateSceneMetadata(app, $selectedDraft.vaultPath, item.name, {
+      ...currentMetadata,
+      status: nextStatus,
+    });
+
+    // Refresh items
+    items = itemsFromScenes($selectedDraft.scenes, collapsedItems, $sceneMetadata);
+  }
+
+  // Keyboard navigation handler
+  function handleListKeydown(event: KeyboardEvent) {
+    const visibleItems = items.filter(i => !i.hidden);
+    if (visibleItems.length === 0) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+      case "j":
+        event.preventDefault();
+        focusedIndex = Math.min(focusedIndex + 1, visibleItems.length - 1);
+        scrollToFocused();
+        break;
+      case "ArrowUp":
+      case "k":
+        event.preventDefault();
+        focusedIndex = Math.max(focusedIndex - 1, 0);
+        scrollToFocused();
+        break;
+      case "Enter":
+        event.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < visibleItems.length) {
+          const item = visibleItems[focusedIndex];
+          onSceneClick(item.path, false);
+        }
+        break;
+      case "e":
+        // Quick edit metadata
+        event.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < visibleItems.length) {
+          openMetadataModal(visibleItems[focusedIndex].name);
+        }
+        break;
+      case "s":
+        // Quick cycle status
+        event.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < visibleItems.length) {
+          const item = visibleItems[focusedIndex];
+          cycleStatus(item, event as any);
+        }
+        break;
+      case "Escape":
+        focusedIndex = -1;
+        sceneListEl?.blur();
+        break;
+    }
+  }
+
+  function scrollToFocused() {
+    if (!sceneListEl || focusedIndex < 0) return;
+    const visibleItems = items.filter(i => !i.hidden);
+    if (focusedIndex >= visibleItems.length) return;
+
+    const itemEl = sceneListEl.querySelector(`[data-scene-name="${visibleItems[focusedIndex].name}"]`);
+    if (itemEl) {
+      itemEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
+  // Update focused index when active file changes
+  $: if ($activeFile && items.length > 0) {
+    const visibleItems = items.filter(i => !i.hidden);
+    const activeIndex = visibleItems.findIndex(i => i.path === $activeFile.path);
+    if (activeIndex >= 0) {
+      focusedIndex = activeIndex;
+    }
   }
 
   // Track sort state for styling, set sorting options
@@ -382,6 +477,9 @@
     id="scene-list"
     class:dragging={isSorting}
     style="--ghost-indent: {ghostIndent}px"
+    bind:this={sceneListEl}
+    on:keydown={handleListKeydown}
+    tabindex="0"
   >
     <SortableList
       trackIndents
@@ -396,6 +494,7 @@
         class="scene-container{item.hidden ? ' hidden' : ''}{item.collapsible ? ' collapsible' : ''}"
         style="padding-left: calc(({item.indent} * var(--longform-explorer-indent-size)) + 6px {item.collapsible ? '' : '+ var(--size-4-4)'});"
         class:selected={$activeFile && $activeFile.path === item.path}
+        class:focused={!item.hidden && focusedIndex === items.filter(i => !i.hidden).findIndex(i => i.id === item.id)}
         on:contextmenu|preventDefault={onContext}
         on:dblclick={() => openMetadataModal(item.name)}
         data-scene-path={item.path}
@@ -436,19 +535,23 @@
           >
             {item.name}
           </div>
-          {#if item.status}
-            <span class="longform-scene-status longform-status-{item.status}">
-              {#if item.status === 'todo'}
-                <span class="longform-status-icon">○</span>
-              {:else if item.status === 'in-progress'}
-                <span class="longform-status-icon">◐</span>
-              {:else if item.status === 'done'}
-                <span class="longform-status-icon">●</span>
-              {:else if item.status === 'revision'}
-                <span class="longform-status-icon">↺</span>
-              {/if}
-            </span>
-          {/if}
+          <span
+            class="longform-scene-status {item.status ? `longform-status-${item.status}` : 'longform-status-empty'}"
+            on:click={(e) => cycleStatus(item, e)}
+            title="Click to cycle status (or press 's')"
+          >
+            {#if item.status === 'todo'}
+              <span class="longform-status-icon">○</span>
+            {:else if item.status === 'in-progress'}
+              <span class="longform-status-icon">◐</span>
+            {:else if item.status === 'done'}
+              <span class="longform-status-icon">●</span>
+            {:else if item.status === 'revision'}
+              <span class="longform-status-icon">↺</span>
+            {:else}
+              <span class="longform-status-icon longform-status-placeholder">○</span>
+            {/if}
+          </span>
         </div>
       </div>
     </SortableList>
@@ -633,6 +736,27 @@
     font-size: 10px;
     flex-shrink: 0;
     opacity: 0.7;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: var(--radius-s);
+    transition: all 0.15s ease;
+  }
+
+  .longform-scene-status:hover {
+    opacity: 1;
+    background-color: var(--background-modifier-hover);
+  }
+
+  .longform-status-empty {
+    opacity: 0;
+  }
+
+  .scene-container:hover .longform-status-empty {
+    opacity: 0.3;
+  }
+
+  .longform-status-placeholder {
+    color: var(--text-faint);
   }
 
   .longform-status-todo { color: var(--text-muted); }
@@ -642,5 +766,17 @@
 
   .longform-status-icon {
     font-size: 12px;
+  }
+
+  /* Keyboard navigation focused state */
+  #scene-list:focus {
+    outline: none;
+  }
+
+  #scene-list:focus-within .scene-container.focused,
+  #scene-list:focus .scene-container.focused {
+    outline: 2px solid var(--text-accent);
+    outline-offset: -2px;
+    background-color: var(--background-secondary-alt);
   }
 </style>
