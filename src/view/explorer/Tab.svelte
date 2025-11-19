@@ -64,32 +64,100 @@
       /></svg
     >
   {/if}
+  {#if tab == "Dashboard"}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="clickable-icon lucide lucide-layout-dashboard"
+      ><rect width="7" height="9" x="3" y="3" rx="1" /><rect
+        width="7"
+        height="5"
+        x="14"
+        y="3"
+        rx="1"
+      /><rect width="7" height="9" x="14" y="12" rx="1" /><rect
+        width="7"
+        height="5"
+        x="3"
+        y="16"
+        rx="1"
+      /></svg
+    >
+  {/if}
+  {#if tab == "References"}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="clickable-icon lucide lucide-library"
+      ><path d="m16 6 4 14" /><path d="M12 6v14" /><path
+        d="M8 8v12" /><path d="M4 4v16" /></svg
+    >
+  {/if}
   {tab}
 </button>
 
 <style>
   .tab-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
     background: none;
     border: none;
-    border-bottom: none;
-    border-radius: var(--tab-radius-active);
-    padding: 0 1em 0 0.4em;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 0.6em 0.8em;
     box-shadow: none;
     margin: 0;
-    color: var(--tab-text-color-focused);
-    font-size: var(--tab-font-size);
-    font-weight: var(--tab-font-weight);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-medium);
     white-space: nowrap;
-    border-right: 1px solid var(--tab-outline-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .tab-button svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
   }
 
   .tab-button:hover {
-    color: var(--tab-text-color-focused);
+    color: var(--text-normal);
     background-color: var(--background-modifier-hover);
   }
 
+  .tab-button:hover svg {
+    opacity: 1;
+  }
+
   .tab-button.selected {
-    background-color: var(--tab-background-active);
-    color: var(--tab-text-color-focused-active);
+    color: var(--text-accent);
+    border-bottom-color: var(--text-accent);
+    background: none;
+  }
+
+  .tab-button.selected svg {
+    opacity: 1;
+  }
+
+  .tab-button:active {
+    transform: scale(0.98);
   }
 </style>

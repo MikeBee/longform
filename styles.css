@@ -1,6 +1,275 @@
 :root {
   --longform-explorer-font-size: var(--font-ui-medium);
   --longform-explorer-indent-size: 2em;
+  --longform-transition-fast: 0.1s ease;
+  --longform-transition-normal: 0.2s ease;
+  --longform-transition-slow: 0.3s ease;
+  --longform-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --longform-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --longform-radius-sm: 4px;
+  --longform-radius-md: 6px;
+  --longform-radius-lg: 8px;
+}
+
+/* ========================================
+   Global Polish - Transitions & Animations
+   ======================================== */
+
+@keyframes longform-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes longform-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.longform-explorer button,
+.longform-dashboard button,
+.longform-references button {
+  transition: all var(--longform-transition-normal);
+}
+
+.longform-explorer button:active:not(:disabled),
+.longform-dashboard button:active:not(:disabled),
+.longform-references button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ========================================
+   Global Polish - Tab Container
+   ======================================== */
+
+.longform-explorer .tab-list {
+  display: flex;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  padding: 0 var(--size-4-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.longform-explorer .tab-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================
+   Global Polish - Section Headers
+   ======================================== */
+
+.longform-dashboard-section h3,
+.longform-references h3 {
+  font-size: var(--font-ui-small) !important;
+  font-weight: var(--font-semibold) !important;
+  color: var(--text-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--size-4-3) 0 !important;
+}
+
+/* ========================================
+   Global Polish - Cards & Items
+   ======================================== */
+
+.longform-stat-item,
+.longform-session-item,
+.longform-streak-display,
+.longform-reference-item,
+.longform-analytics-item,
+.longform-text-stat,
+.longform-complexity-item,
+.longform-extreme-item {
+  transition: all var(--longform-transition-normal);
+  border: 1px solid transparent;
+}
+
+.longform-stat-item:hover,
+.longform-session-item:hover,
+.longform-reference-item:hover,
+.longform-analytics-item:hover,
+.longform-text-stat:hover,
+.longform-complexity-item:hover {
+  border-color: var(--background-modifier-border);
+  box-shadow: var(--longform-shadow-sm);
+}
+
+/* ========================================
+   Global Polish - Progress Bars
+   ======================================== */
+
+.longform-goal-progress-fill,
+.longform-scene-bar-fill,
+.longform-day-bar-fill,
+.longform-week-bar-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+.longform-goal-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  100% { left: 100%; }
+}
+
+/* ========================================
+   Global Polish - Empty States
+   ======================================== */
+
+.longform-references-empty,
+.longform-references-empty-list,
+.longform-analyzing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--size-4-4);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.longform-references-empty::before,
+.longform-references-empty-list::before {
+  content: '📝';
+  font-size: 1.5em;
+  margin-bottom: var(--size-4-2);
+  opacity: 0.5;
+}
+
+.longform-references-empty-list::before {
+  content: '📋';
+}
+
+/* ========================================
+   Global Polish - Modal Improvements
+   ======================================== */
+
+.longform-scene-metadata-modal,
+.longform-character-modal,
+.longform-location-modal,
+.longform-research-note-modal {
+  animation: longform-fade-in 0.15s ease;
+}
+
+.longform-scene-metadata-modal .setting-item,
+.longform-character-modal .setting-item,
+.longform-location-modal .setting-item,
+.longform-research-note-modal .setting-item {
+  border: none;
+  padding: var(--size-4-2) 0;
+}
+
+.longform-scene-metadata-modal .setting-item-name,
+.longform-character-modal .setting-item-name,
+.longform-location-modal .setting-item-name,
+.longform-research-note-modal .setting-item-name {
+  font-weight: var(--font-medium);
+}
+
+.longform-scene-metadata-modal .setting-item-description,
+.longform-character-modal .setting-item-description,
+.longform-location-modal .setting-item-description,
+.longform-research-note-modal .setting-item-description {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+}
+
+.longform-modal-buttons button {
+  padding: var(--size-4-2) var(--size-4-4);
+  border-radius: var(--longform-radius-md);
+  font-weight: var(--font-medium);
+  font-size: var(--font-ui-small);
+}
+
+.longform-modal-buttons button.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  box-shadow: var(--longform-shadow-sm);
+}
+
+.longform-modal-buttons button.mod-cta:hover {
+  background: var(--interactive-accent-hover);
+  box-shadow: var(--longform-shadow-md);
+}
+
+.longform-modal-buttons button:not(.mod-cta) {
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.longform-modal-buttons button:not(.mod-cta):hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+/* ========================================
+   Global Polish - Inputs & Textareas
+   ======================================== */
+
+.longform-scene-metadata-modal textarea,
+.longform-character-modal textarea,
+.longform-location-modal textarea,
+.longform-research-note-modal textarea,
+.longform-scene-metadata-modal input,
+.longform-character-modal input,
+.longform-location-modal input,
+.longform-research-note-modal input {
+  transition: all var(--longform-transition-fast);
+  border-radius: var(--longform-radius-sm);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.longform-scene-metadata-modal textarea:focus,
+.longform-character-modal textarea:focus,
+.longform-location-modal textarea:focus,
+.longform-research-note-modal textarea:focus,
+.longform-scene-metadata-modal input:focus,
+.longform-character-modal input:focus,
+.longform-location-modal input:focus,
+.longform-research-note-modal input:focus {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.1);
+}
+
+/* ========================================
+   Global Polish - Badges & Status
+   ======================================== */
+
+.longform-trait-tag,
+.longform-tag,
+.longform-word-item {
+  transition: all var(--longform-transition-fast);
+}
+
+.longform-trait-tag:hover,
+.longform-tag:hover,
+.longform-word-item:hover {
+  background: var(--background-modifier-hover);
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   Global Polish - Number Displays
+   ======================================== */
+
+.longform-streak-number,
+.longform-readability-number {
+  background: linear-gradient(135deg, var(--interactive-accent), var(--text-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .longform-settings-user-steps {
