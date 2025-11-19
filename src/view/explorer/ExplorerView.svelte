@@ -10,6 +10,7 @@
   import SceneList from "./SceneList.svelte";
   import ProjectDetails from "./ProjectDetails.svelte";
   import DashboardView from "./DashboardView.svelte";
+  import ReferencesView from "./ReferencesView.svelte";
   import { needsMigration } from "src/model/migration";
   import { getContext } from "svelte";
   import Tab from "./Tab.svelte";
@@ -65,6 +66,7 @@
             <Tab tab="Project" />
             <Tab tab="Compile" />
             <Tab tab="Dashboard" />
+            <Tab tab="References" />
           </div>
         </div>
         {#if $selectedTab === "Scenes"}
@@ -84,6 +86,10 @@
           <div class="tab-panel-container">
             <DashboardView />
           </div>
+        {:else if $selectedTab === "References"}
+          <div class="tab-panel-container">
+            <ReferencesView />
+          </div>
         {/if}
       </div>
     {:else}
@@ -93,6 +99,7 @@
             <Tab tab="Project" />
             <Tab tab="Compile" />
             <Tab tab="Dashboard" />
+            <Tab tab="References" />
           </div>
         </div>
         {#if $selectedTab === "Project"}
@@ -106,6 +113,10 @@
         {:else if $selectedTab === "Dashboard"}
           <div class="tab-panel-container">
             <DashboardView />
+          </div>
+        {:else if $selectedTab === "References"}
+          <div class="tab-panel-container">
+            <ReferencesView />
           </div>
         {/if}
       </div>

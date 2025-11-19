@@ -7,6 +7,7 @@ import type {
   LongformPluginSettings,
   DraftWordCounts,
   SceneMetadata,
+  ProjectReferences,
 } from "./types";
 import type {
   Workflow,
@@ -66,6 +67,12 @@ export const waitingForSync = writable<boolean>(false);
  * Writeable store of scene metadata, keyed by "draftPath/sceneTitle".
  */
 export const sceneMetadata = writable<Record<string, SceneMetadata>>({});
+
+/**
+ * Writeable store of project references (characters, locations, research notes),
+ * keyed by project title.
+ */
+export const projectReferences = writable<Record<string, ProjectReferences>>({});
 
 // DERIVED STORES
 

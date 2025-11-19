@@ -10,6 +10,44 @@ export type SceneMetadata = {
   notes?: string; // Private notes that don't compile
 };
 
+export type Character = {
+  id: string;
+  name: string;
+  description?: string;
+  traits?: string[];
+  relationships?: Array<{ characterId: string; relationship: string }>;
+  notes?: string;
+  colorTag?: string;
+  scenes?: string[]; // Scene titles where character appears
+};
+
+export type Location = {
+  id: string;
+  name: string;
+  description?: string;
+  details?: string;
+  notes?: string;
+  colorTag?: string;
+  scenes?: string[]; // Scene titles where location appears
+};
+
+export type ResearchNote = {
+  id: string;
+  title: string;
+  content: string;
+  tags?: string[];
+  sources?: string[];
+  linkedScenes?: string[]; // Scene titles this note relates to
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type ProjectReferences = {
+  characters: Character[];
+  locations: Location[];
+  researchNotes: ResearchNote[];
+};
+
 export type IndentedScene = {
   title: string;
   indent: number;
