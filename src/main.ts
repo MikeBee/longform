@@ -54,6 +54,9 @@ import NewProjectModal from "./view/project-lifecycle/new-project-modal";
 import { LongformAPI } from "./api/LongformAPI";
 
 const LONGFORM_LEAF_CLASS = "longform-leaf";
+const FOCUS_MODE_PARAGRAPH_CLASS = "longform-focus-mode-paragraph";
+const FOCUS_MODE_SENTENCE_CLASS = "longform-focus-mode-sentence";
+const TYPEWRITER_MODE_CLASS = "longform-typewriter-mode";
 
 // TODO: Try and abstract away more logic from actual plugin hooks here
 
@@ -68,6 +71,7 @@ export default class LongformPlugin extends Plugin {
   private unsubscribeSelectedDraft: Unsubscriber;
   private unsubscribeSessions: Unsubscriber;
   private unsubscribeGoalNotification: Unsubscriber;
+  private unsubscribeWritingModes: Unsubscriber;
   private userScriptObserver: UserScriptObserver;
   writingSessionTracker: WritingSessionTracker;
   public api: LongformAPI;
@@ -160,6 +164,10 @@ export default class LongformPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("layout-change", () => {
         this.styleLongformLeaves();
+        // Re-apply writing modes when layout changes
+        if (get(initialized)) {
+          this.applyWritingModes(get(pluginSettings));
+        }
       })
     );
     this.unsubscribeDrafts = drafts.subscribe((allDrafts) => {
@@ -178,7 +186,10 @@ export default class LongformPlugin extends Plugin {
     this.unsubscribeDrafts();
     this.unsubscribeSessions();
     this.unsubscribeGoalNotification();
+    this.unsubscribeWritingModes();
     this.writingSessionTracker.destroy();
+    // Clean up writing mode classes
+    document.body.classList.remove("longform-distraction-free");
     this.app.workspace
       .getLeavesOfType(VIEW_TYPE_LONGFORM_EXPLORER)
       .forEach((leaf) => leaf.detach());
@@ -395,8 +406,63 @@ export default class LongformPlugin extends Plugin {
       }
     );
 
+    // Writing modes
+    this.unsubscribeWritingModes = pluginSettings.subscribe((settings) => {
+      if (!get(initialized)) {
+        return;
+      }
+      this.applyWritingModes(settings);
+    });
+
     this.initLeaf();
     initialized.set(true);
+
+    // Apply initial writing modes
+    this.applyWritingModes(get(pluginSettings));
+  }
+
+  private applyWritingModes(settings: LongformPluginSettings): void {
+    // Apply distraction-free mode to body
+    if (settings.distractionFreeEnabled) {
+      document.body.classList.add("longform-distraction-free");
+    } else {
+      document.body.classList.remove("longform-distraction-free");
+    }
+
+    // Apply focus and typewriter modes to longform leaves
+    this.app.workspace.getLeavesOfType("markdown").forEach((leaf) => {
+      if (leaf.view instanceof FileView) {
+        const draft = draftForPath(leaf.view.file.path, get(drafts));
+        if (draft) {
+          const el = leaf.view.containerEl;
+
+          // Focus mode
+          el.classList.remove(FOCUS_MODE_PARAGRAPH_CLASS, FOCUS_MODE_SENTENCE_CLASS);
+          if (settings.focusModeEnabled) {
+            if (settings.focusModeType === "paragraph") {
+              el.classList.add(FOCUS_MODE_PARAGRAPH_CLASS);
+            } else {
+              el.classList.add(FOCUS_MODE_SENTENCE_CLASS);
+            }
+          }
+
+          // Typewriter mode
+          if (settings.typewriterModeEnabled) {
+            el.classList.add(TYPEWRITER_MODE_CLASS);
+          } else {
+            el.classList.remove(TYPEWRITER_MODE_CLASS);
+          }
+        } else {
+          // Remove writing mode classes from non-longform files
+          const el = leaf.view.containerEl;
+          el.classList.remove(
+            FOCUS_MODE_PARAGRAPH_CLASS,
+            FOCUS_MODE_SENTENCE_CLASS,
+            TYPEWRITER_MODE_CLASS
+          );
+        }
+      }
+    });
   }
 
   initLeaf(): void {

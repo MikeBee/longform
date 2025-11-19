@@ -136,6 +136,74 @@ export class LongformSettingsTab extends PluginSettingTab {
         "User Script Steps are automatically loaded from this folder. Changes to .js files in this folder are synced with Longform after a slight delay. If your script does not appear here or in the Compile tab, you may have an error in your script—check the dev console for it.";
     });
 
+    new Setting(containerEl).setName("Writing Experience").setHeading();
+
+    new Setting(containerEl)
+      .setName("Focus mode")
+      .setDesc(
+        "Dims non-active paragraphs or sentences to help you focus on what you're writing. Toggle with the 'Toggle focus mode' command."
+      )
+      .addToggle((cb) => {
+        cb.setValue(settings.focusModeEnabled);
+        cb.onChange((value) => {
+          pluginSettings.update((s) => ({
+            ...s,
+            focusModeEnabled: value,
+          }));
+        });
+      });
+
+    new Setting(containerEl)
+      .setName("Focus mode type")
+      .setDesc("Choose whether to focus on the current paragraph or sentence.")
+      .addDropdown((cb) => {
+        cb.addOption("paragraph", "Paragraph");
+        cb.addOption("sentence", "Sentence");
+        cb.setValue(settings.focusModeType);
+        cb.onChange((value: "paragraph" | "sentence") => {
+          pluginSettings.update((s) => ({
+            ...s,
+            focusModeType: value,
+          }));
+        });
+      });
+
+    new Setting(containerEl)
+      .setName("Typewriter mode")
+      .setDesc(
+        "Keeps the cursor line centered in the editor while you type. Toggle with the 'Toggle typewriter mode' command."
+      )
+      .addToggle((cb) => {
+        cb.setValue(settings.typewriterModeEnabled);
+        cb.onChange((value) => {
+          pluginSettings.update((s) => ({
+            ...s,
+            typewriterModeEnabled: value,
+          }));
+        });
+      });
+
+    new Setting(containerEl)
+      .setName("Distraction-free mode")
+      .setDesc(
+        "Hides sidebars and UI elements for a cleaner writing experience. Toggle with the 'Toggle distraction-free mode' command."
+      )
+      .addToggle((cb) => {
+        cb.setValue(settings.distractionFreeEnabled);
+        cb.onChange((value) => {
+          pluginSettings.update((s) => ({
+            ...s,
+            distractionFreeEnabled: value,
+          }));
+          // Apply immediately
+          if (value) {
+            document.body.classList.add("longform-distraction-free");
+          } else {
+            document.body.classList.remove("longform-distraction-free");
+          }
+        });
+      });
+
     new Setting(containerEl).setName("Word Counts & Sessions").setHeading();
     new Setting(containerEl)
       .setName("Show word counts in status bar")

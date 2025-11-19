@@ -9,6 +9,7 @@
   import ProjectPicker from "./ProjectPicker.svelte";
   import SceneList from "./SceneList.svelte";
   import ProjectDetails from "./ProjectDetails.svelte";
+  import DashboardView from "./DashboardView.svelte";
   import { needsMigration } from "src/model/migration";
   import { getContext } from "svelte";
   import Tab from "./Tab.svelte";
@@ -63,6 +64,7 @@
             <Tab tab="Scenes" />
             <Tab tab="Project" />
             <Tab tab="Compile" />
+            <Tab tab="Dashboard" />
           </div>
         </div>
         {#if $selectedTab === "Scenes"}
@@ -74,9 +76,13 @@
           <div class="tab-panel-container">
             <ProjectDetails />
           </div>
-        {:else}
+        {:else if $selectedTab === "Compile"}
           <div class="tab-panel-container disconnected">
             <CompileView />
+          </div>
+        {:else if $selectedTab === "Dashboard"}
+          <div class="tab-panel-container">
+            <DashboardView />
           </div>
         {/if}
       </div>
@@ -86,15 +92,20 @@
           <div class="tab-list">
             <Tab tab="Project" />
             <Tab tab="Compile" />
+            <Tab tab="Dashboard" />
           </div>
         </div>
         {#if $selectedTab === "Project"}
           <div class="tab-panel-container">
             <ProjectDetails />
           </div>
-        {:else}
+        {:else if $selectedTab === "Compile"}
           <div class="tab-panel-container">
             <CompileView />
+          </div>
+        {:else if $selectedTab === "Dashboard"}
+          <div class="tab-panel-container">
+            <DashboardView />
           </div>
         {/if}
       </div>

@@ -17,3 +17,209 @@
   margin-left: var(--size-4-2);
   color: var(--text-muted);
 }
+
+/* ========================================
+   Writing Mode Styles
+   ======================================== */
+
+/* Focus Mode - Paragraph level */
+.longform-focus-mode-paragraph .cm-line:not(.cm-active) {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.longform-focus-mode-paragraph .cm-line.cm-active {
+  opacity: 1;
+}
+
+/* Focus Mode - Sentence level */
+.longform-focus-mode-sentence .cm-line {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.longform-focus-mode-sentence .cm-line.cm-active {
+  opacity: 1;
+}
+
+/* Typewriter Mode */
+.longform-typewriter-mode .cm-scroller {
+  padding-bottom: 50vh !important;
+}
+
+.longform-typewriter-mode .cm-content {
+  padding-bottom: 50vh !important;
+}
+
+/* Distraction-free Mode */
+body.longform-distraction-free .workspace-ribbon,
+body.longform-distraction-free .workspace-tabs,
+body.longform-distraction-free .status-bar {
+  display: none !important;
+}
+
+body.longform-distraction-free .mod-left-split,
+body.longform-distraction-free .mod-right-split {
+  width: 0 !important;
+  min-width: 0 !important;
+  flex: 0 !important;
+}
+
+body.longform-distraction-free .workspace-split.mod-root {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+body.longform-distraction-free .view-header {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+body.longform-distraction-free .view-header:hover {
+  opacity: 1;
+}
+
+/* Writing mode indicator */
+.longform-writing-mode-indicator {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  background: var(--background-modifier-message);
+  border-radius: 4px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* ========================================
+   Dashboard Styles
+   ======================================== */
+
+.longform-dashboard {
+  padding: var(--size-4-3);
+}
+
+.longform-dashboard-section {
+  margin-bottom: var(--size-4-4);
+}
+
+.longform-dashboard-section h3 {
+  margin: 0 0 var(--size-4-2) 0;
+  font-size: var(--font-ui-medium);
+  color: var(--text-normal);
+}
+
+.longform-goal-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.longform-goal-progress-bar {
+  height: 8px;
+  background: var(--background-modifier-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.longform-goal-progress-fill {
+  height: 100%;
+  background: var(--interactive-accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.longform-goal-progress-fill.complete {
+  background: var(--color-green);
+}
+
+.longform-goal-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.longform-session-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+}
+
+.longform-session-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--size-4-1) var(--size-4-2);
+  background: var(--background-secondary);
+  border-radius: 4px;
+  font-size: var(--font-ui-smaller);
+}
+
+.longform-session-date {
+  color: var(--text-muted);
+}
+
+.longform-session-words {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+}
+
+.longform-streak-display {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-2);
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.longform-streak-number {
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-bold);
+  color: var(--interactive-accent);
+}
+
+.longform-streak-label {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+/* Statistics Modal */
+.longform-stats-modal {
+  padding: var(--size-4-3);
+}
+
+.longform-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--size-4-3);
+}
+
+.longform-stat-item {
+  display: flex;
+  flex-direction: column;
+  padding: var(--size-4-2);
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.longform-stat-value {
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-bold);
+  color: var(--text-normal);
+}
+
+.longform-stat-label {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+/* Reading time estimate */
+.longform-reading-time {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  margin-left: var(--size-4-2);
+}

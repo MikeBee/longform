@@ -99,6 +99,12 @@ export interface LongformPluginSettings {
   fallbackWaitEnabled: boolean;
   fallbackWaitTime: number;
   writeProperty: boolean;
+  // Writing mode settings
+  focusModeEnabled: boolean;
+  focusModeType: "paragraph" | "sentence";
+  typewriterModeEnabled: boolean;
+  typewriterModeOffset: number; // percentage from top (0-100)
+  distractionFreeEnabled: boolean;
   // DEPRECATED. To be removed in future, needed now for migrations.
   projects: {
     [path: string]: {
@@ -132,6 +138,12 @@ export const DEFAULT_SETTINGS: LongformPluginSettings = {
   waitForSync: false,
   fallbackWaitEnabled: true,
   fallbackWaitTime: 5,
+  // Writing mode defaults
+  focusModeEnabled: false,
+  focusModeType: "paragraph",
+  typewriterModeEnabled: false,
+  typewriterModeOffset: 50,
+  distractionFreeEnabled: false,
 };
 
 export const TRACKED_SETTINGS_PATHS: (keyof LongformPluginSettings)[] = [
@@ -155,6 +167,11 @@ export const TRACKED_SETTINGS_PATHS: (keyof LongformPluginSettings)[] = [
   "fallbackWaitEnabled",
   "fallbackWaitTime",
   "writeProperty",
+  "focusModeEnabled",
+  "focusModeType",
+  "typewriterModeEnabled",
+  "typewriterModeOffset",
+  "distractionFreeEnabled",
 ];
 
 export const PASSTHROUGH_SAVE_SETTINGS_PATHS: (keyof LongformPluginSettings)[] =
@@ -175,4 +192,9 @@ export const PASSTHROUGH_SAVE_SETTINGS_PATHS: (keyof LongformPluginSettings)[] =
     "fallbackWaitEnabled",
     "fallbackWaitTime",
     "writeProperty",
+    "focusModeEnabled",
+    "focusModeType",
+    "typewriterModeEnabled",
+    "typewriterModeOffset",
+    "distractionFreeEnabled",
   ];

@@ -18,6 +18,12 @@ import {
   insertSingleSceneTemplate,
 } from "./templates";
 import { startNewSession } from "./word-counts";
+import {
+  toggleFocusMode,
+  toggleTypewriterMode,
+  toggleDistractionFreeMode,
+  cycleFocusModeType,
+} from "./writing-modes";
 
 const commandBuilders = [
   compileCurrent,
@@ -37,6 +43,10 @@ const commandBuilders = [
   insertMultiSceneTemplate,
   insertSingleSceneTemplate,
   startNewSession,
+  toggleFocusMode,
+  toggleTypewriterMode,
+  toggleDistractionFreeMode,
+  cycleFocusModeType,
 ];
 
 export function addCommands(plugin: LongformPlugin) {
