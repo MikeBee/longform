@@ -18,6 +18,66 @@
   // Get current session words
   $: sessionWords = $sessions.length > 0 ? $sessions[0].total : 0;
 
+  // Scene statistics for multi-scene drafts
+  $: sceneStats = (() => {
+    if (!$selectedDraft || $selectedDraft.format !== "scenes" || !$draftWordCounts) {
+      return null;
+    }
+    const counts = $draftWordCounts[$selectedDraft.vaultPath];
+    if (!counts || typeof counts === "number") return null;
+
+    const scenes = $selectedDraft.scenes;
+    const sceneData = scenes.map(scene => ({
+      title: scene.title,
+      words: counts[scene.title] || 0,
+      indent: scene.indent
+    }));
+
+    const totalScenes = scenes.length;
+    const avgWords = totalScenes > 0 ? Math.round(currentDraftWords / totalScenes) : 0;
+    const maxWords = Math.max(...sceneData.map(s => s.words), 1);
+    const minWords = Math.min(...sceneData.filter(s => s.words > 0).map(s => s.words), 0);
+
+    // Find longest and shortest scenes
+    const sortedByWords = [...sceneData].sort((a, b) => b.words - a.words);
+    const longest = sortedByWords[0];
+    const shortest = sortedByWords.filter(s => s.words > 0).pop();
+
+    return {
+      sceneData,
+      totalScenes,
+      avgWords,
+      maxWords,
+      minWords,
+      longest,
+      shortest
+    };
+  })();
+
+  // Estimated complexity based on word count patterns
+  $: complexity = (() => {
+    if (!sceneStats || sceneStats.totalScenes === 0) return null;
+
+    // Calculate variance in scene lengths
+    const variance = sceneStats.sceneData.reduce((sum, scene) => {
+      return sum + Math.pow(scene.words - sceneStats.avgWords, 2);
+    }, 0) / sceneStats.totalScenes;
+
+    const stdDev = Math.sqrt(variance);
+    const coeffOfVariation = sceneStats.avgWords > 0 ? (stdDev / sceneStats.avgWords) * 100 : 0;
+
+    // Rough reading level estimate based on avg scene length
+    let readingLevel = "Easy";
+    if (sceneStats.avgWords > 2000) readingLevel = "Complex";
+    else if (sceneStats.avgWords > 1000) readingLevel = "Moderate";
+
+    return {
+      stdDev: Math.round(stdDev),
+      coeffOfVariation: Math.round(coeffOfVariation),
+      readingLevel
+    };
+  })();
+
   // Calculate writing streak
   $: streak = (() => {
     if ($sessions.length === 0) return 0;
@@ -92,8 +152,64 @@
         <span class="longform-stat-value">{readingTime} min</span>
         <span class="longform-stat-label">Reading Time</span>
       </div>
+      {#if sceneStats}
+        <div class="longform-stat-item">
+          <span class="longform-stat-value">{sceneStats.totalScenes}</span>
+          <span class="longform-stat-label">Scenes</span>
+        </div>
+        <div class="longform-stat-item">
+          <span class="longform-stat-value">{sceneStats.avgWords.toLocaleString()}</span>
+          <span class="longform-stat-label">Avg Words/Scene</span>
+        </div>
+      {/if}
     </div>
   </div>
+
+  <!-- Scene Distribution -->
+  {#if sceneStats && sceneStats.sceneData.length > 0}
+    <div class="longform-dashboard-section">
+      <h3>Scene Distribution</h3>
+      <div class="longform-scene-distribution">
+        {#each sceneStats.sceneData as scene}
+          <div class="longform-scene-bar-container" title="{scene.title}: {scene.words.toLocaleString()} words">
+            <div class="longform-scene-bar-label">{scene.title}</div>
+            <div class="longform-scene-bar-track">
+              <div
+                class="longform-scene-bar-fill"
+                style="width: {(scene.words / sceneStats.maxWords) * 100}%"
+              />
+            </div>
+            <div class="longform-scene-bar-value">{scene.words.toLocaleString()}</div>
+          </div>
+        {/each}
+      </div>
+      {#if sceneStats.longest && sceneStats.shortest}
+        <div class="longform-scene-extremes">
+          <span>Longest: {sceneStats.longest.title} ({sceneStats.longest.words.toLocaleString()}w)</span>
+          {#if sceneStats.shortest && sceneStats.shortest !== sceneStats.longest}
+            <span>Shortest: {sceneStats.shortest.title} ({sceneStats.shortest.words.toLocaleString()}w)</span>
+          {/if}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Complexity Analysis -->
+    {#if complexity}
+      <div class="longform-dashboard-section">
+        <h3>Analysis</h3>
+        <div class="longform-complexity-grid">
+          <div class="longform-complexity-item">
+            <span class="longform-complexity-label">Scene Length Variance</span>
+            <span class="longform-complexity-value">{complexity.coeffOfVariation}%</span>
+          </div>
+          <div class="longform-complexity-item">
+            <span class="longform-complexity-label">Structure</span>
+            <span class="longform-complexity-value">{complexity.readingLevel}</span>
+          </div>
+        </div>
+      </div>
+    {/if}
+  {/if}
 
   <!-- Writing Streak -->
   <div class="longform-dashboard-section">
@@ -238,6 +354,84 @@
   }
 
   .longform-session-words {
+    color: var(--text-normal);
+    font-weight: var(--font-medium);
+  }
+
+  /* Scene Distribution */
+  .longform-scene-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .longform-scene-bar-container {
+    display: grid;
+    grid-template-columns: 80px 1fr 50px;
+    gap: var(--size-4-1);
+    align-items: center;
+    font-size: var(--font-ui-smaller);
+  }
+
+  .longform-scene-bar-label {
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .longform-scene-bar-track {
+    height: 6px;
+    background: var(--background-modifier-border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .longform-scene-bar-fill {
+    height: 100%;
+    background: var(--interactive-accent);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .longform-scene-bar-value {
+    color: var(--text-muted);
+    text-align: right;
+    font-size: var(--font-ui-smaller);
+  }
+
+  .longform-scene-extremes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    margin-top: var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+  }
+
+  /* Complexity Analysis */
+  .longform-complexity-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+  }
+
+  .longform-complexity-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--size-4-1) var(--size-4-2);
+    background: var(--background-secondary);
+    border-radius: 4px;
+    font-size: var(--font-ui-smaller);
+  }
+
+  .longform-complexity-label {
+    color: var(--text-muted);
+  }
+
+  .longform-complexity-value {
     color: var(--text-normal);
     font-weight: var(--font-medium);
   }
